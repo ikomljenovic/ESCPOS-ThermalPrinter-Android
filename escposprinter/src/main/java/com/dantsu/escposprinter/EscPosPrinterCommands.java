@@ -747,7 +747,7 @@ public class EscPosPrinterCommands {
             return this;
         }
 
-        this.printerConnection.write(new byte[]{0x1B, 0x70, 0x00, 0x3C, (byte) 0xFF});
+        this.printerConnection.write(new byte[]{0x1B, 0x70, 0x00, 0x20, 0x01});
         this.printerConnection.send(100);
         return this;
     }
