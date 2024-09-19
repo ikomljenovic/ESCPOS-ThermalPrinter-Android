@@ -753,21 +753,34 @@ public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
 
     // Define different byte combinations to try
     byte[][] combinations = {
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x30, (byte) 0x19, (byte) 0xFA},
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x30, (byte) 0x32, (byte) 0x32},
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x30, (byte) 0x64, (byte) 0x64},
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x30, (byte) 0x32, (byte) 0x64},
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x30, (byte) 0x19, (byte) 0xFF},
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x31, (byte) 0x19, (byte) 0xFA},
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x31, (byte) 0x32, (byte) 0x32},
+        {(byte) 0x07},
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x30, (byte) 0x32, (byte) 0x32},
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x30, (byte) 0x20, (byte) 0x01},
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x31, (byte) 0x20, (byte) 0x01},
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x32, (byte) 0xFA},
         {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x19, (byte) 0xFA},  // Original with different pulse
         {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x32, (byte) 0x32},  // Another common combination
-        {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x64, (byte) 0x64}, 
-        {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x32, (byte) 0x64}, 
-         {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x19, (byte) 0xFF}, 
-         // Longer pulse
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x64, (byte) 0x64},  // Longer pulse
         {(byte) 0x1B, (byte) 0x70, (byte) 0x01, (byte) 0x19, (byte) 0xFA},  // Channel 1
-        {(byte) 0x1B, (byte) 0x70, (byte) 0x01, (byte) 0x32, (byte) 0x32}, 
-        {(byte) 0x07} ,
-          {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x32, (byte) 0xFA},
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x01, (byte) 0x32, (byte) 0x32}  // Channel 1, different pulse
     };
 
     for (int i = 0; i < combinations.length; i++) {
         try {
-            Log.d("EscPosPrinterCommands", "Attempting combination " + (i + 1));
+            String hexString = bytesToHex(combinations[i]);
+            String decimalString = bytesToDecimal(combinations[i]);
+            
+            Log.d("EscPosPrinterCommands", "Attempting combination " + (i + 1) + 
+                  "\nHex: " + hexString + 
+                  "\nDecimal: " + decimalString);
+            
             this.printerConnection.write(combinations[i]);
             this.printerConnection.send(100);
             Log.d("EscPosPrinterCommands", "Combination " + (i + 1) + " sent successfully");
@@ -781,13 +794,28 @@ public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
         } catch (InterruptedException e) {
             Log.e("EscPosPrinterCommands", "Sleep interrupted: " + e.getMessage());
         }
-
-        // You might want to add some code here to check if the cash drawer actually opened
-        // This could involve reading a status from the printer, if supported
     }
 
     Log.d("EscPosPrinterCommands", "All combinations attempted");
     return this;
+}
+
+// Helper method to convert byte array to hexadecimal string
+private String bytesToHex(byte[] bytes) {
+    StringBuilder sb = new StringBuilder();
+    for (byte b : bytes) {
+        sb.append(String.format("0x%02X ", b));
+    }
+    return sb.toString().trim();
+}
+
+// Helper method to convert byte array to decimal string
+private String bytesToDecimal(byte[] bytes) {
+    StringBuilder sb = new StringBuilder();
+    for (byte b : bytes) {
+        sb.append(String.format("%d ", b & 0xFF));
+    }
+    return sb.toString().trim();
 }
 
     /**
