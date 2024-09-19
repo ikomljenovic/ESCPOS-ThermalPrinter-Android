@@ -1,6 +1,7 @@
 package com.dantsu.escposprinter;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
@@ -743,11 +744,13 @@ public class EscPosPrinterCommands {
      * @return Fluent interface
      */
     public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
+        Log.d("EscPosPrinterCommands", "openCashBox function triggered");
+
         if (!this.printerConnection.isConnected()) {
             return this;
         }
-
-        this.printerConnection.write(new byte[]{ (byte)0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x20, (byte) 0x01});
+        Log.d("EscPosPrinterCommands", "openCashBox function sending bytes");
+        this.printerConnection.write(new byte[]{ (byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0xFF, (byte) 0xFF});
         this.printerConnection.send(100);
         return this;
     }
