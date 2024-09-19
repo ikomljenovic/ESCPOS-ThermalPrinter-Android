@@ -755,9 +755,13 @@ public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
     byte[][] combinations = {
         {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x19, (byte) 0xFA},  // Original with different pulse
         {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x32, (byte) 0x32},  // Another common combination
-        {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x64, (byte) 0x64},  // Longer pulse
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x64, (byte) 0x64}, 
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x32, (byte) 0x64}, 
+         {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x19, (byte) 0xFF}, 
+         // Longer pulse
         {(byte) 0x1B, (byte) 0x70, (byte) 0x01, (byte) 0x19, (byte) 0xFA},  // Channel 1
-        {(byte) 0x1B, (byte) 0x70, (byte) 0x01, (byte) 0x32, (byte) 0x32},  // Channel 1, different pulse
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x01, (byte) 0x32, (byte) 0x32}, 
+        {(byte) 0x07} // Channel 1, different pulse
     };
 
     for (int i = 0; i < combinations.length; i++) {
