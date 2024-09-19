@@ -743,17 +743,47 @@ public class EscPosPrinterCommands {
      *
      * @return Fluent interface
      */
-    public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
-        Log.d("EscPosPrinterCommands", "openCashBox function triggered");
+public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
+    Log.d("EscPosPrinterCommands", "openCashBox function triggered");
 
-        if (!this.printerConnection.isConnected()) {
-            return this;
-        }
-        Log.d("EscPosPrinterCommands", "openCashBox function sending bytes");
-        this.printerConnection.write(new byte[]{ (byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0xFF, (byte) 0xFF});
-        this.printerConnection.send(100);
+    if (!this.printerConnection.isConnected()) {
+        Log.e("EscPosPrinterCommands", "Printer not connected");
         return this;
     }
+
+    // Define different byte combinations to try
+    byte[][] combinations = {
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x19, (byte) 0xFA},  // Original with different pulse
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x32, (byte) 0x32},  // Another common combination
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x64, (byte) 0x64},  // Longer pulse
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x01, (byte) 0x19, (byte) 0xFA},  // Channel 1
+        {(byte) 0x1B, (byte) 0x70, (byte) 0x01, (byte) 0x32, (byte) 0x32},  // Channel 1, different pulse
+    };
+
+    for (int i = 0; i < combinations.length; i++) {
+        try {
+            Log.d("EscPosPrinterCommands", "Attempting combination " + (i + 1));
+            this.printerConnection.write(combinations[i]);
+            this.printerConnection.send(100);
+            Log.d("EscPosPrinterCommands", "Combination " + (i + 1) + " sent successfully");
+        } catch (EscPosConnectionException e) {
+            Log.e("EscPosPrinterCommands", "Error sending combination " + (i + 1) + ": " + e.getMessage());
+        }
+
+        // Wait for a moment to see if the cash drawer opens
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Log.e("EscPosPrinterCommands", "Sleep interrupted: " + e.getMessage());
+        }
+
+        // You might want to add some code here to check if the cash drawer actually opened
+        // This could involve reading a status from the printer, if supported
+    }
+
+    Log.d("EscPosPrinterCommands", "All combinations attempted");
+    return this;
+}
 
     /**
      * @return Charset encoding
