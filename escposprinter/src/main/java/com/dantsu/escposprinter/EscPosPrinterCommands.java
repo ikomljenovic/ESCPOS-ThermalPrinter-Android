@@ -753,10 +753,10 @@ public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
 
     // Define the full sequence of commands
     byte[][] sequence = {
-        {0, 0, 0},                    // Wake up printer
-        {27, 64},                     // Initialize printer (ESC @)
-        {27, 33, 0},                  // Set default settings (ESC ! 0)
-        {0, 0, 0, 27, 112, 0, 32, 0}  // Open drawer (NUL NUL NUL ESC p 0 32 0)
+        {(byte) 0, (byte) 0, (byte) 0},                    // Wake up printer
+        {(byte) 27, (byte) 64},                     // Initialize printer (ESC @)
+        {(byte) 27, (byte) 33, (byte) 0},                  // Set default settings (ESC ! 0)
+        {(byte) 0, (byte) 0, (byte) 0, (byte) 27 , (byte) 112, (byte) 0, (byte) 32, (byte) 0}  // Open drawer (NUL NUL NUL ESC p 0 32 0)
     };
 
     // Send the full sequence
