@@ -751,50 +751,40 @@ public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
         return this;
     }
 
-    // Define different byte combinations to try
-    byte[][] combinations = {
-    {(byte) 0,(byte) 0,(byte) 0,(byte) 0x1B,(byte) 0x70, (byte) 0x00, (byte) 0x05, (byte) 0x00 },
-    // New combinations based on getOpenMoneyBoxCmd()
-    {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x20, (byte) 0x01},  // Full command from getOpenMoneyBoxCmd()
-    {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x20, (byte) 0x01},  // Without leading null bytes
-    {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x1B, (byte) 0x70, (byte) 0x01, (byte) 0x20, (byte) 0x01},  // Variation with drawer 1
-    {(byte) 0x1B, (byte) 0x70, (byte) 0x01, (byte) 0x20, (byte) 0x01},  // Drawer 1 without leading null bytes
-    {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x40, (byte) 0x02},  // Longer pulse duration
-    {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x40, (byte) 0x02},  // Longer pulse without leading null bytes
-    {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x10, (byte) 0x01},  // Shorter pulse duration
-    {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x10, (byte) 0x01},  // Shorter pulse without leading null bytes
-    {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0xFF, (byte) 0x01},  // Maximum value for second parameter
-    {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0xFF, (byte) 0x01},  // Maximum value without leading null bytes
-    {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x20, (byte) 0xFF},  // Maximum value for third parameter
-    {(byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x20, (byte) 0xFF}   // Maximum third parameter without leading null bytes
-  
+    // Define the full sequence of commands
+    byte[][] sequence = {
+        {0, 0, 0},                    // Wake up printer
+        {27, 64},                     // Initialize printer (ESC @)
+        {27, 33, 0},                  // Set default settings (ESC ! 0)
+        {0, 0, 0, 27, 112, 0, 32, 0}  // Open drawer (NUL NUL NUL ESC p 0 32 0)
     };
 
-    for (int i = 0; i < combinations.length; i++) {
-        try {
-            String hexString = bytesToHex(combinations[i]);
-            String decimalString = bytesToDecimal(combinations[i]);
+    // Send the full sequence
+    try {
+        for (byte[] command : sequence) {
+            String hexString = bytesToHex(command);
+            String decimalString = bytesToDecimal(command);
             
-            Log.d("EscPosPrinterCommands", "Attempting combination " + (i + 1) + 
+            Log.d("EscPosPrinterCommands", "Sending command: " +
                   "\nHex: " + hexString + 
                   "\nDecimal: " + decimalString);
             
-            this.printerConnection.write(combinations[i]);
-            this.printerConnection.send(100);
-            Log.d("EscPosPrinterCommands", "Combination " + (i + 1) + " sent successfully");
-        } catch (EscPosConnectionException e) {
-            Log.e("EscPosPrinterCommands", "Error sending combination " + (i + 1) + ": " + e.getMessage());
+            this.printerConnection.write(command);
+            this.printerConnection.send(100);  // Small delay between commands
+            Log.d("EscPosPrinterCommands", "Command sent successfully");
         }
-
-        // Wait for a moment to see if the cash drawer opens
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            Log.e("EscPosPrinterCommands", "Sleep interrupted: " + e.getMessage());
-        }
+    } catch (EscPosConnectionException e) {
+        Log.e("EscPosPrinterCommands", "Error sending command sequence: " + e.getMessage());
     }
 
-    Log.d("EscPosPrinterCommands", "All combinations attempted");
+    // Wait for a moment to see if the cash drawer opens
+    try {
+        Thread.sleep(1000);
+    } catch (InterruptedException e) {
+        Log.e("EscPosPrinterCommands", "Sleep interrupted: " + e.getMessage());
+    }
+
+    Log.d("EscPosPrinterCommands", "All commands and combinations attempted");
     return this;
 }
 
