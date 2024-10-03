@@ -784,14 +784,6 @@ public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
     return this;
 }
 
-// Helper method to convert byte array to hexadecimal string
-private String bytesToHex(byte[] bytes) {
-    StringBuilder sb = new StringBuilder();
-    for (byte b : bytes) {
-        sb.append(String.format("%02X ", b));
-    }
-    return sb.toString().trim();
-}
 
 // Helper method to convert byte array to hexadecimal string
 private String bytesToHex(byte[] bytes) {
