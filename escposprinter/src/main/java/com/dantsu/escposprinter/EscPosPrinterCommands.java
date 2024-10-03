@@ -744,48 +744,53 @@ public class EscPosPrinterCommands {
      * @return Fluent interface
      */
 public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
-    Log.d("EscPosPrinterCommands", "openCashBox function triggered");
+    Log.d("Fuuu", "openCashBox function triggered");
 
     if (!this.printerConnection.isConnected()) {
-        Log.e("EscPosPrinterCommands", "Printer not connected");
+        Log.e("Fuuu", "Printer not connected");
         return this;
     }
 
-    // Define the full sequence of commands
+    // Define the sequence of commands as captured from the USB port
     byte[][] sequence = {
-        {(byte) 0, (byte) 0, (byte) 0},                    // Wake up printer
-        {(byte) 27, (byte) 64},                     // Initialize printer (ESC @)
-        {(byte) 27, (byte) 33, (byte) 0},                  // Set default settings (ESC ! 0)
-        {(byte) 0, (byte) 0, (byte) 0, (byte) 27 , (byte) 112, (byte) 0, (byte) 32, (byte) 0}  // Open drawer (NUL NUL NUL ESC p 0 32 0)
+        {0x1B, 0x40},                     // Initialize printer (ESC @)
+        {0x1B, 0x21, 0x00},               // Set default settings (ESC ! 0)
+        {0x00, 0x00, 0x00, 0x1B, 0x70, 0x00, 0x0A, 0x05}  // Open drawer command
     };
 
-    // Send the full sequence
+    // Send the sequence
     try {
         for (byte[] command : sequence) {
             String hexString = bytesToHex(command);
-            String decimalString = bytesToDecimal(command);
-            
-            Log.d("EscPosPrinterCommands", "Sending command: " +
-                  "\nHex: " + hexString + 
-                  "\nDecimal: " + decimalString);
+            Log.d("EscPosPrinterCommands", "Sending command: Hex: " + hexString);
             
             this.printerConnection.write(command);
-            this.printerConnection.send(100);  // Small delay between commands
+            this.printerConnection.send(50);  // Small delay between commands
             Log.d("EscPosPrinterCommands", "Command sent successfully");
         }
     } catch (EscPosConnectionException e) {
         Log.e("EscPosPrinterCommands", "Error sending command sequence: " + e.getMessage());
+        throw e;  // Re-throw the exception to be handled by the caller
     }
 
-    // Wait for a moment to see if the cash drawer opens
+    // Wait for a moment to allow the cash drawer to open
     try {
-        Thread.sleep(1000);
+        Thread.sleep(500);
     } catch (InterruptedException e) {
         Log.e("EscPosPrinterCommands", "Sleep interrupted: " + e.getMessage());
     }
 
-    Log.d("EscPosPrinterCommands", "All commands and combinations attempted");
+    Log.d("EscPosPrinterCommands", "Cash drawer open sequence completed");
     return this;
+}
+
+// Helper method to convert byte array to hexadecimal string
+private String bytesToHex(byte[] bytes) {
+    StringBuilder sb = new StringBuilder();
+    for (byte b : bytes) {
+        sb.append(String.format("%02X ", b));
+    }
+    return sb.toString().trim();
 }
 
 // Helper method to convert byte array to hexadecimal string
