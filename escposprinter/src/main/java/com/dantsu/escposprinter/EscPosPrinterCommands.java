@@ -753,23 +753,23 @@ public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
 
     // Define the sequence of commands as captured from the USB port
     byte[][] sequence = {
-        {0x1B, 0x40},                     // Initialize printer (ESC @)
-        {0x1B, 0x21, 0x00},               // Set default settings (ESC ! 0)
-        {0x00, 0x00, 0x00, 0x1B, 0x70, 0x00, 0x0A, 0x05}  // Open drawer command
+        {(byte) 0x1B,(byte)  0x40},                     // Initialize printer (ESC @)
+        {(byte) 0x1B,(byte)  0x21,(byte)  0x00},               // Set default settings (ESC ! 0)
+        {(byte) 0x00,(byte)  0x00,(byte)  0x00,(byte)  0x1B,(byte)  0x70,(byte)  0x00,  (byte) 0x0A,(byte)  0x05}  // Open drawer command
     };
 
     // Send the sequence
     try {
         for (byte[] command : sequence) {
             String hexString = bytesToHex(command);
-            Log.d("EscPosPrinterCommands", "Sending command: Hex: " + hexString);
+            Log.d("Fuuu", "Sending command: Hex: " + hexString);
             
             this.printerConnection.write(command);
             this.printerConnection.send(50);  // Small delay between commands
-            Log.d("EscPosPrinterCommands", "Command sent successfully");
+            Log.d("Fuuu", "Command sent successfully");
         }
     } catch (EscPosConnectionException e) {
-        Log.e("EscPosPrinterCommands", "Error sending command sequence: " + e.getMessage());
+        Log.e("Fuuu", "Error sending command sequence: " + e.getMessage());
         throw e;  // Re-throw the exception to be handled by the caller
     }
 
@@ -777,10 +777,10 @@ public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
     try {
         Thread.sleep(500);
     } catch (InterruptedException e) {
-        Log.e("EscPosPrinterCommands", "Sleep interrupted: " + e.getMessage());
+        Log.e("Fuuu", "Sleep interrupted: " + e.getMessage());
     }
 
-    Log.d("EscPosPrinterCommands", "Cash drawer open sequence completed");
+    Log.d("Fuuu", "Cash drawer open sequence completed");
     return this;
 }
 
