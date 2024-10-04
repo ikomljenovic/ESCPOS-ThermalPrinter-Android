@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
                             )
-                                .execute(getAsyncEscPosPrinter(new UsbConnection(usbManager, usbDevice)));
+                                .execute(getAsyncEscPosPrinter(new UsbConnection(usbManager, usbDevice,context)));
                         }
                     }
                 }
