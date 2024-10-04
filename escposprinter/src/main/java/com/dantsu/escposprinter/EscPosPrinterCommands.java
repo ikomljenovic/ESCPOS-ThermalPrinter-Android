@@ -1,7 +1,6 @@
 package com.dantsu.escposprinter;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
@@ -18,7 +17,7 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.google.zxing.qrcode.encoder.ByteMatrix;
 import com.google.zxing.qrcode.encoder.Encoder;
 import com.google.zxing.qrcode.encoder.QRCode;
-
+import android.util.Log;
 public class EscPosPrinterCommands {
 
     public static final byte LF = 0x0A;
@@ -743,65 +742,54 @@ public class EscPosPrinterCommands {
      *
      * @return Fluent interface
      */
-public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
-    Log.d("Fuuu", "openCashBox function triggered");
+    public EscPosPrinterCommands openCashBox() throws EscPosConnectionException {
+        Log.d("Fuuu", "openCashBox function triggered");
+        if (!this.printerConnection.isConnected()) {
+            Log.e("Fuuu", "Printer not connected");
+            return this;
+        }
 
-    if (!this.printerConnection.isConnected()) {
-        Log.e("Fuuu", "Printer not connected");
+        // Define the sequence of commands as captured from the USB port
+        byte[][] sequence = {
+                {(byte) 0x1B, (byte) 0x40},                     // Initialize printer (ESC @)
+                {(byte) 0x1B, (byte) 0x21, (byte) 0x00},        // Set default settings (ESC ! 0)
+                {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x1B, (byte) 0x70, (byte) 0x00, (byte) 0x0A, (byte) 0x05}  // Open drawer command
+        };
+
+        // Send the sequence
+        try {
+            for (byte[] command : sequence) {
+                String hexString = bytesToHex(command);
+                Log.d("Fuuu", "Sending command: Hex: " + hexString);
+
+                this.printerConnection.write(command);
+                this.printerConnection.send(50);  // Small delay between commands
+                Log.d("Fuuu", "Command sent successfully");
+            }
+        } catch (EscPosConnectionException e) {
+            Log.e("Fuuu", "Error sending command sequence: " + e.getMessage());
+            throw e;  // Re-throw the exception to be handled by the caller
+        }
+
+        // Wait for a moment to allow the cash drawer to open
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Log.e("Fuuu", "Sleep interrupted: " + e.getMessage());
+        }
+
+        Log.d("Fuuu", "Cash drawer open sequence completed");
         return this;
     }
 
-    // Define the sequence of commands as captured from the USB port
-    byte[][] sequence = {
-        {(byte) 0x1B,(byte)  0x40},                     // Initialize printer (ESC @)
-        {(byte) 0x1B,(byte)  0x21,(byte)  0x00},               // Set default settings (ESC ! 0)
-        {(byte) 0x00,(byte)  0x00,(byte)  0x00,(byte)  0x1B,(byte)  0x70,(byte)  0x00,  (byte) 0x0A,(byte)  0x05}  // Open drawer command
-    };
-
-    // Send the sequence
-    try {
-        for (byte[] command : sequence) {
-            String hexString = bytesToHex(command);
-            Log.d("Fuuu", "Sending command: Hex: " + hexString);
-            
-            this.printerConnection.write(command);
-            this.printerConnection.send(50);  // Small delay between commands
-            Log.d("Fuuu", "Command sent successfully");
+    // Helper method to convert byte array to hexadecimal string
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
         }
-    } catch (EscPosConnectionException e) {
-        Log.e("Fuuu", "Error sending command sequence: " + e.getMessage());
-        throw e;  // Re-throw the exception to be handled by the caller
+        return sb.toString().trim();
     }
-
-    // Wait for a moment to allow the cash drawer to open
-    try {
-        Thread.sleep(500);
-    } catch (InterruptedException e) {
-        Log.e("Fuuu", "Sleep interrupted: " + e.getMessage());
-    }
-
-    Log.d("Fuuu", "Cash drawer open sequence completed");
-    return this;
-}
-
-
-// Helper method to convert byte array to hexadecimal string
-private String bytesToHex(byte[] bytes) {
-    StringBuilder sb = new StringBuilder();
-    for (byte b : bytes) {
-        sb.append(String.format("0x%02X ", b));
-    }
-    return sb.toString().trim();
-}
-
-// Helper method to convert byte array to decimal string
-private String bytesToDecimal(byte[] bytes) {
-    StringBuilder sb = new StringBuilder();
-    for (byte b : bytes) {
-        sb.append(String.format("%d ", b & 0xFF));
-    }
-    return sb.toString().trim();
-}
 
     /**
      * @return Charset encoding

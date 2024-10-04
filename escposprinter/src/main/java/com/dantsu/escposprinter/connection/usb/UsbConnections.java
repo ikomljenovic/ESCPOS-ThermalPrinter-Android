@@ -25,7 +25,7 @@ public class UsbConnections {
      * @return Return an array of UsbConnection instance
      */
     @Nullable
-    public UsbConnection[] getList() {
+    public UsbConnection[] getList(Context context) {
         if (this.usbManager == null) {
             return null;
         }
@@ -36,7 +36,7 @@ public class UsbConnections {
         if (devicesList.size() > 0) {
             int i = 0;
             for (UsbDevice device : devicesList) {
-                usbDevices[i++] = new UsbConnection(this.usbManager, device);
+                usbDevices[i++] = new UsbConnection(this.usbManager, device, context);
             }
         }
         

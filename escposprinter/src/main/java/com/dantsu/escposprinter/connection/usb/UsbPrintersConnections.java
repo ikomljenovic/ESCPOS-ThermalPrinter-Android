@@ -3,6 +3,7 @@ package com.dantsu.escposprinter.connection.usb;
 import android.content.Context;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -27,7 +28,7 @@ public class UsbPrintersConnections extends UsbConnections {
     @Nullable
     public static UsbConnection selectFirstConnected(Context context) {
         UsbPrintersConnections printers = new UsbPrintersConnections(context);
-        UsbConnection[] bluetoothPrinters = printers.getList();
+        UsbConnection[] bluetoothPrinters = printers.getList(context);
         
         if (bluetoothPrinters == null || bluetoothPrinters.length == 0) {
             return null;
@@ -43,8 +44,9 @@ public class UsbPrintersConnections extends UsbConnections {
      * @return an array of UsbConnection
      */
     @Nullable
-    public UsbConnection[] getList() {
-        UsbConnection[] usbConnections = super.getList();
+    public UsbConnection[] getList(Context context) {
+        Log.d("Fuuu","Getting USB device list");
+        UsbConnection[] usbConnections = super.getList(context);
 
         if(usbConnections == null) {
             return null;
@@ -59,7 +61,7 @@ public class UsbPrintersConnections extends UsbConnections {
                 usbClass = UsbConstants.USB_CLASS_PRINTER;
             }
             if (usbClass == UsbConstants.USB_CLASS_PRINTER) {
-                printersTmp[i++] = new UsbConnection(this.usbManager, device);
+                printersTmp[i++] = new UsbConnection(this.usbManager, device,context);
             }
         }
 
