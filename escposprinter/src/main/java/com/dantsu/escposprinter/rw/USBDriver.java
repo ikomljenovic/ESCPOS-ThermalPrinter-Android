@@ -5,6 +5,7 @@ import  com.dantsu.escposprinter.utils.ErrorCode;
 
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbEndpoint;
+import android.util.Log;
 
 /**
  * ��һ�㣬USB���� Χ����USBPort������
@@ -15,68 +16,122 @@ import android.hardware.usb.UsbEndpoint;
 public class USBDriver {
 
 	String description;
-	
+
 
 	int probe(USBPort port, USBDeviceId id[]) {
-		if (null == port || null == id)
-			return ErrorCode.NULLPOINTER;
-		if (null == port.mUsbManager)
-			return ErrorCode.NULLPOINTER;
-		if (null == port.mContext)
-			return ErrorCode.NULLPOINTER;
-		if (null == port.mUsbDevice)
-			return ErrorCode.NULLPOINTER;
-		if (null == port.mPermissionIntent)
-			return ErrorCode.NULLPOINTER;
+		Log.d("USB DRIVER", "Starting probe function");
+		// Log the full USBDeviceId[] list
 
-		for (int i = 0; i < id.length; i++)
-			if (id[i].idVendor == port.mUsbDevice.getVendorId()
-					&& id[i].idProduct == port.mUsbDevice.getProductId()) {
-				if (!port.mUsbManager.hasPermission(port.mUsbDevice))
-					port.mUsbManager.requestPermission(port.mUsbDevice,
-							port.mPermissionIntent);
+		if (port == null || id == null) {
+			Log.e("USB DRIVER", "Port or device ID array is null. Returning ErrorCode.NULLPOINTER");
+			return ErrorCode.NULLPOINTER;
+		}
+		if (port.mUsbManager == null) {
+			Log.e("USB DRIVER", "port.mUsbManager is null. Returning ErrorCode.NULLPOINTER");
+			return ErrorCode.NULLPOINTER;
+		}
+		if (port.mContext == null) {
+			Log.e("USB DRIVER", "port.mContext is null. Returning ErrorCode.NULLPOINTER");
+			return ErrorCode.NULLPOINTER;
+		}
+		if (port.mUsbDevice == null) {
+			Log.e("USB DRIVER", "port.mUsbDevice is null. Returning ErrorCode.NULLPOINTER");
+			return ErrorCode.NULLPOINTER;
+		}
+		if (port.mPermissionIntent == null) {
+			Log.e("USB DRIVER", "port.mPermissionIntent is null. Returning ErrorCode.NULLPOINTER");
+			return ErrorCode.NULLPOINTER;
+		}
+		Log.d("USB DRIVER", "Logging all USBDeviceId entries:");
+		for (int x = 0; x < id.length; x++) {
+			Log.d("USB DRIVER", "USBDeviceId[" + x + "] -> Vendor ID: " + id[x].idVendor + ", Product ID: " + id[x].idProduct);
+		}
+		Log.d("USB DRIVER", "Vendor ID=" + port.mUsbDevice.getVendorId() + " Product ID=" + port.mUsbDevice.getProductId());
 
-				if (!port.mUsbManager.hasPermission(port.mUsbDevice))
+		// Loop through the array of USB device IDs to check if we have a matching device
+		for (int i = 0; i < id.length; i++) {
+			Log.d("USB DRIVER", "Checking device ID #" + i + " - Vendor ID: " + id[i].idVendor + ", Product ID: " + id[i].idProduct);
+
+			if (id[i].idVendor == port.mUsbDevice.getVendorId() && id[i].idProduct == port.mUsbDevice.getProductId()) {
+				Log.d("USB DRIVER", "Matching device found.");
+
+				// Check permission
+				Log.d("USB DRIVER", "Checking USB permission for device.");
+				boolean hasPermission = port.mUsbManager.hasPermission(port.mUsbDevice);
+				Log.d("USB DRIVER", "Has permission: " + hasPermission);
+
+				if (!hasPermission) {
+					Log.d("USB DRIVER", "Requesting permission for device.");
+					port.mUsbManager.requestPermission(port.mUsbDevice, port.mPermissionIntent);
+				}
+
+				hasPermission = port.mUsbManager.hasPermission(port.mUsbDevice);
+				if (!hasPermission) {
+					Log.e("USB DRIVER", "No permission to access the USB device. Returning ErrorCode.NOPERMISSION");
 					return ErrorCode.NOPERMISSION;
+				}
 
-				// ö�٣��Ѷ�д���ƶ˿�ʲô�ĸ�Ū������Ȼ��set
-				outer: for (int k = 0; k < port.mUsbDevice.getInterfaceCount(); k++) {
-					port.mUsbInterface = port.mUsbDevice.getInterface(i);
+				// Loop through the interfaces and endpoints
+				Log.d("USB DRIVER", "Looking for USB interfaces and endpoints.");
+				outer:
+				for (int k = 0; k < port.mUsbDevice.getInterfaceCount(); k++) {
+					Log.d("USB DRIVER", "Checking interface #" + k);
+					port.mUsbInterface = port.mUsbDevice.getInterface(k);
 					port.mUsbEndpointOut = null;
 					port.mUsbEndpointIn = null;
+
 					for (int j = 0; j < port.mUsbInterface.getEndpointCount(); j++) {
-						UsbEndpoint endpoint = port.mUsbInterface
-								.getEndpoint(j);
-						if (endpoint.getDirection() == UsbConstants.USB_DIR_OUT
-								&& endpoint.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
+						Log.d("USB DRIVER", "Checking endpoint #" + j);
+						UsbEndpoint endpoint = port.mUsbInterface.getEndpoint(j);
+						Log.d("USB DRIVER", "Endpoint direction: " + endpoint.getDirection() + ", type: " + endpoint.getType());
+
+						if (endpoint.getDirection() == UsbConstants.USB_DIR_OUT && endpoint.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
 							port.mUsbEndpointOut = endpoint;
-						} else if (endpoint.getDirection() == UsbConstants.USB_DIR_IN
-								&& endpoint.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
+							Log.d("USB DRIVER", "Found USB OUT bulk transfer endpoint.");
+						} else if (endpoint.getDirection() == UsbConstants.USB_DIR_IN && endpoint.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
 							port.mUsbEndpointIn = endpoint;
+							Log.d("USB DRIVER", "Found USB IN bulk transfer endpoint.");
 						}
 
-						// ����ڵ�һ���ӿھ��ҵ��˷���Ҫ��Ķ˵㣬��ôbreak;
-						if ((null != port.mUsbEndpointOut)
-								&& (null != port.mUsbEndpointIn))
+						// If both endpoints are found, break the loop
+						if (port.mUsbEndpointOut != null && port.mUsbEndpointIn != null) {
+							Log.d("USB DRIVER", "Both IN and OUT endpoints found. Exiting the loop.");
 							break outer;
+						}
 					}
 				}
-				if (null == port.mUsbInterface)
-					return ErrorCode.NULLPOINTER;
-				if ((null == port.mUsbEndpointOut)
-						|| (null == port.mUsbEndpointIn))
-					return ErrorCode.NULLPOINTER;
-				port.mUsbDeviceConnection = port.mUsbManager
-						.openDevice(port.mUsbDevice);
-				if (null == port.mUsbDeviceConnection)
-					return ErrorCode.NULLPOINTER;
-				port.mUsbDeviceConnection.claimInterface(port.mUsbInterface,
-						true);
-				return 0;
-			}
 
+				if (port.mUsbInterface == null) {
+					Log.e("USB DRIVER", "No USB interface found. Returning ErrorCode.NULLPOINTER");
+					return ErrorCode.NULLPOINTER;
+				}
+
+				if (port.mUsbEndpointOut == null || port.mUsbEndpointIn == null) {
+					Log.e("USB DRIVER", "Required endpoints (IN/OUT) are missing. Returning ErrorCode.NULLPOINTER");
+					return ErrorCode.NULLPOINTER;
+				}
+
+				// Open the USB device connection
+				Log.d("USB DRIVER", "Opening USB device connection.");
+				port.mUsbDeviceConnection = port.mUsbManager.openDevice(port.mUsbDevice);
+
+				if (port.mUsbDeviceConnection == null) {
+					Log.e("USB DRIVER", "Failed to open USB device connection. Returning ErrorCode.NULLPOINTER");
+					return ErrorCode.NULLPOINTER;
+				}
+
+				Log.d("USB DRIVER", "Claiming interface.");
+				port.mUsbDeviceConnection.claimInterface(port.mUsbInterface, true);
+
+				Log.d("USB DRIVER", "Probe function completed successfully.");
+				return 0; // Success
+			}
+		}
+
+		Log.e("USB DRIVER", "No matching USB device found. Returning ErrorCode.ERROR");
 		return ErrorCode.ERROR;
 	}
+
 
 	void disconnect(USBPort port) {
 		if (null == port)

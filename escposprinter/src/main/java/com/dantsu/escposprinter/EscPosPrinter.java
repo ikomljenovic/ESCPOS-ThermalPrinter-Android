@@ -206,7 +206,10 @@ public class EscPosPrinter extends EscPosPrinterSize {
         this.printer.openCashBox();
         return this;
     }
-
+    public EscPosPrinter openCashBox() throws EscPosConnectionException, EscPosParserException, EscPosEncodingException, EscPosBarcodeException {
+        this.printer.openCashBox();
+        return this;
+    }
     /**
      * @return Charset encoding
      */

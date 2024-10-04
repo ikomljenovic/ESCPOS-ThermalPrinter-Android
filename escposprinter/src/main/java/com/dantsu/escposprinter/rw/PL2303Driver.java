@@ -5,7 +5,7 @@ import com.dantsu.escposprinter.utils.ErrorCode;
 
 public class PL2303Driver extends USBSerialDriver {
 
-	private USBDeviceId id[] = { new USBDeviceId(0x067b, 0x2303) };
+	private USBDeviceId id[] = { new USBDeviceId(4070, 33054) };
 
 	private static final int SET_LINE_REQUEST_TYPE = 0x21;
 	private static final int SET_LINE_REQUEST = 0x20;

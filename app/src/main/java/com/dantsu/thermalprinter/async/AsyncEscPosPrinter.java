@@ -1,7 +1,10 @@
 package com.dantsu.thermalprinter.async;
 
+import android.util.Log;
+
 import com.dantsu.escposprinter.EscPosPrinterSize;
 import com.dantsu.escposprinter.connection.DeviceConnection;
+import com.dantsu.escposprinter.exceptions.EscPosConnectionException;
 
 public class AsyncEscPosPrinter extends EscPosPrinterSize {
     private DeviceConnection printerConnection;

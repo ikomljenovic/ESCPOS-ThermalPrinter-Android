@@ -65,6 +65,7 @@ public abstract class AsyncEscPosPrint extends AsyncTask<AsyncEscPosPrinter, Int
                     printerData.getPrinterNbrCharactersPerLine(),
                     new EscPosCharsetEncoding("windows-1252", 16)
             );
+            printer.printFormattedTextAndOpenCashBox("TEST",10);
 
             // printer.useEscAsteriskCommand(true);
 
@@ -74,6 +75,7 @@ public abstract class AsyncEscPosPrint extends AsyncTask<AsyncEscPosPrinter, Int
 
             for(String textToPrint : textsToPrint) {
                 printer.printFormattedTextAndCut(textToPrint);
+                printer.openCashBox();
                 Thread.sleep(500);
             }
 
